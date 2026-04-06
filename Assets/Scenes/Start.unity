@@ -338,7 +338,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 21573690}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 792035775}
+        m_TargetAssemblyTypeName: UIStartScene, Assembly-CSharp
+        m_MethodName: QuitGame
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &21573690
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -459,7 +471,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 60281900}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 792035775}
+        m_TargetAssemblyTypeName: UIStartScene, Assembly-CSharp
+        m_MethodName: HideInstructions
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &60281900
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -645,7 +669,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 771340895}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 792035775}
+        m_TargetAssemblyTypeName: UIStartScene, Assembly-CSharp
+        m_MethodName: Play
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &771340895
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -717,6 +753,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIStartScene
   instructionPanel: {fileID: 1497776580}
+  Buttons: {fileID: 88500890}
+  TitleText: {fileID: 1756687870}
 --- !u!114 &792035776
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1878,7 +1916,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1943428035}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 792035775}
+        m_TargetAssemblyTypeName: UIStartScene, Assembly-CSharp
+        m_MethodName: ShowInstructions
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1943428035
 MonoBehaviour:
   m_ObjectHideFlags: 0
