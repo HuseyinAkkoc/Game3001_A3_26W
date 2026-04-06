@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using static NPCStateMachine;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class NPCStateMachine : MonoBehaviour
@@ -18,27 +17,26 @@ public class NPCStateMachine : MonoBehaviour
     [SerializeField] private Transform patrolPointB;
     [SerializeField] private LayerMask obstacleMask;
     [SerializeField] private LayerMask playerMask;
-    [SerializeField] private Transform sightVisualRoot;
     [SerializeField] private NPCStateUI stateUI;
 
     [Header("Movement")]
-    [SerializeField] private float moveSpeed = 2.5f;
-    [SerializeField] private float reachDistance = 0.1f;
+    [SerializeField] private float moveSpeed = 2f;
+    [SerializeField] private float stoppingDistance = 0.1f;
 
     [Header("Vision")]
     [SerializeField] private float sightDistance = 5f;
     [SerializeField] private float sightAngle = 60f;
+    [SerializeField] private Vector2 initialFacingDirection = Vector2.up;
 
     [Header("Decision Timing")]
     [SerializeField] private float stateDecisionTime = 3f;
 
-    [Header("Start Setup")]
+    [Header("State Setup")]
     [SerializeField] private NPCState startingState = NPCState.Idle;
-    [SerializeField] private Vector2 initialFacingDirection = Vector2.up;
 
     [Header("Scenes")]
-    [SerializeField] private string victorySceneName = "VictoryScene";
-    [SerializeField] private string defeatSceneName = "DefeatScene";
+    [SerializeField] private string victorySceneName = "Victory";
+    [SerializeField] private string defeatSceneName = "Defeat";
 
     [Header("Audio")]
     [SerializeField] private AudioClip stateChangeSFX;
@@ -48,13 +46,11 @@ public class NPCStateMachine : MonoBehaviour
     private NPCState currentState;
 
     private float timer;
-    private int failedStayAttempts = 0;
+    private int sameStateCount;
+    private bool gameEnded;
 
     private Transform currentPatrolTarget;
-    private bool patrolArrived;
-    private bool gameEnded = false;
-
-    private Vector2 facingDirection;
+    private Vector2 facingDirection = Vector2.up;
 
     public NPCState CurrentState => currentState;
     public float Timer => timer;
@@ -77,33 +73,31 @@ public class NPCStateMachine : MonoBehaviour
         if (gameEnded || player == null)
             return;
 
-        if (CanSeePlayer())
+        if (CanSeePlayer() && currentState != NPCState.MoveTowardsPlayer)
         {
-            if (currentState != NPCState.MoveTowardsPlayer)
-            {
-                EnterState(NPCState.MoveTowardsPlayer);
-            }
+            EnterState(NPCState.MoveTowardsPlayer);
         }
 
         HandleCurrentState();
         UpdateUI();
-        UpdateSightVisual();
     }
 
     private void FixedUpdate()
     {
-        if (gameEnded) return;
+        if (gameEnded)
+            return;
 
         if (currentState == NPCState.Patrol)
         {
-            if (!patrolArrived && currentPatrolTarget != null)
-            {
-                MoveTowards(currentPatrolTarget.position);
-            }
+            PatrolMove();
         }
-        else if (currentState == NPCState.MoveTowardsPlayer && player != null)
+        else if (currentState == NPCState.MoveTowardsPlayer)
         {
-            MoveTowards(player.position);
+            ChasePlayer();
+        }
+        else
+        {
+            rb.linearVelocity = Vector2.zero;
         }
     }
 
@@ -120,75 +114,107 @@ public class NPCStateMachine : MonoBehaviour
                 break;
 
             case NPCState.MoveTowardsPlayer:
-                HandleMoveTowardsPlayer();
+                HandleChase();
                 break;
         }
     }
 
     private void HandleIdle()
     {
+        rb.linearVelocity = Vector2.zero;
+
         timer -= Time.deltaTime;
 
         if (timer <= 0f)
         {
-            DecideIdleOrPatrol(fromState: NPCState.Idle);
+            DecideIdleOrPatrol(NPCState.Idle);
         }
     }
 
     private void HandlePatrol()
     {
-        if (!patrolArrived && currentPatrolTarget != null)
-        {
-            float distance = Vector2.Distance(transform.position, currentPatrolTarget.position);
+        if (currentPatrolTarget == null)
+            return;
 
-            if (distance <= reachDistance)
-            {
-                rb.MovePosition(currentPatrolTarget.position);
-                patrolArrived = true;
-                timer = stateDecisionTime;
-            }
-        }
-        else
+        float distance = Vector2.Distance(transform.position, currentPatrolTarget.position);
+
+        if (distance <= stoppingDistance)
         {
+            rb.position = currentPatrolTarget.position;
+            rb.linearVelocity = Vector2.zero;
+
             timer -= Time.deltaTime;
 
             if (timer <= 0f)
             {
-                DecideIdleOrPatrol(fromState: NPCState.Patrol);
+                DecideIdleOrPatrol(NPCState.Patrol);
             }
         }
     }
 
-    private void HandleMoveTowardsPlayer()
+    private void HandleChase()
     {
         timer = 0f;
     }
 
+    private void PatrolMove()
+    {
+        if (currentPatrolTarget == null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            return;
+        }
+
+        Vector2 direction = ((Vector2)currentPatrolTarget.position - rb.position).normalized;
+        rb.linearVelocity = direction * moveSpeed;
+
+        if (direction.sqrMagnitude > 0.001f)
+        {
+            SetFacingDirection(direction);
+        }
+    }
+
+    private void ChasePlayer()
+    {
+        if (player == null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            return;
+        }
+
+        Vector2 direction = ((Vector2)player.position - rb.position).normalized;
+        rb.linearVelocity = direction * moveSpeed;
+
+        if (direction.sqrMagnitude > 0.001f)
+        {
+            SetFacingDirection(direction);
+        }
+    }
+
     private void DecideIdleOrPatrol(NPCState fromState)
     {
-        NPCState otherState = (fromState == NPCState.Idle) ? NPCState.Patrol : NPCState.Idle;
+        NPCState otherState = fromState == NPCState.Idle ? NPCState.Patrol : NPCState.Idle;
 
-        // Failsafe: force switch on the 3rd decision
-        if (failedStayAttempts >= 2)
+        bool stayInSameState = Random.value < 0.5f;
+
+        if (sameStateCount >= 2)
         {
             EnterState(otherState);
             return;
         }
 
-        bool stayInCurrentState = Random.value < 0.5f;
-
-        if (stayInCurrentState)
+        if (stayInSameState)
         {
-            failedStayAttempts++;
+            sameStateCount++;
 
             if (fromState == NPCState.Idle)
             {
                 timer = stateDecisionTime;
             }
-            else if (fromState == NPCState.Patrol)
+            else
             {
-                SetNextPatrolPoint();
-                patrolArrived = false;
+                SetNextPatrolTarget();
+                timer = stateDecisionTime;
             }
         }
         else
@@ -200,18 +226,20 @@ public class NPCStateMachine : MonoBehaviour
     private void EnterState(NPCState newState)
     {
         currentState = newState;
-        failedStayAttempts = 0;
+        sameStateCount = 0;
 
         switch (currentState)
         {
             case NPCState.Idle:
                 timer = stateDecisionTime;
+                rb.linearVelocity = Vector2.zero;
                 break;
 
             case NPCState.Patrol:
-                patrolArrived = false;
                 if (currentPatrolTarget == null)
                     currentPatrolTarget = patrolPointA;
+
+                timer = stateDecisionTime;
                 break;
 
             case NPCState.MoveTowardsPlayer:
@@ -223,35 +251,9 @@ public class NPCStateMachine : MonoBehaviour
         {
             AudioManager.Instance.PlaySFX(stateChangeSFX);
         }
-
-        UpdateUI();
     }
 
-    private void MoveTowards(Vector2 targetPosition)
-    {
-        Vector2 currentPos = rb.position;
-        Vector2 direction = (targetPosition - currentPos).normalized;
-
-        if (direction.sqrMagnitude > 0.001f)
-        {
-            SetFacingDirection(direction);
-        }
-
-        Vector2 newPos = Vector2.MoveTowards(currentPos, targetPosition, moveSpeed * Time.fixedDeltaTime);
-        rb.MovePosition(newPos);
-    }
-
-    private void SetFacingDirection(Vector2 dir)
-    {
-        if (dir.sqrMagnitude <= 0.001f) return;
-
-        facingDirection = dir.normalized;
-
-        float angle = Mathf.Atan2(facingDirection.y, facingDirection.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.Euler(0f, 0f, angle - 90f);
-    }
-
-    private void SetNextPatrolPoint()
+    private void SetNextPatrolTarget()
     {
         if (currentPatrolTarget == patrolPointA)
             currentPatrolTarget = patrolPointB;
@@ -259,22 +261,35 @@ public class NPCStateMachine : MonoBehaviour
             currentPatrolTarget = patrolPointA;
     }
 
+    private void SetFacingDirection(Vector2 direction)
+    {
+        facingDirection = direction.normalized;
+
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f;
+        transform.rotation = Quaternion.Euler(0f, 0f, angle);
+    }
+
     private bool CanSeePlayer()
     {
-        if (player == null) return false;
+        if (player == null)
+            return false;
 
         Vector2 origin = transform.position;
-        Vector2 toPlayer = (player.position - transform.position);
-        float distanceToPlayer = toPlayer.magnitude;
+        Vector2 toPlayer = (Vector2)(player.position - transform.position);
 
-        if (distanceToPlayer > sightDistance)
+        if (toPlayer.magnitude > sightDistance)
             return false;
 
         float angleToPlayer = Vector2.Angle(facingDirection, toPlayer.normalized);
         if (angleToPlayer > sightAngle * 0.5f)
             return false;
 
-        RaycastHit2D hit = Physics2D.Raycast(origin, toPlayer.normalized, distanceToPlayer, obstacleMask | playerMask);
+        RaycastHit2D hit = Physics2D.Raycast(
+            origin,
+            toPlayer.normalized,
+            toPlayer.magnitude,
+            obstacleMask | playerMask
+        );
 
         if (hit.collider == null)
             return false;
@@ -282,16 +297,10 @@ public class NPCStateMachine : MonoBehaviour
         return hit.collider.CompareTag("Player");
     }
 
-    private void UpdateSightVisual()
-    {
-        if (sightVisualRoot == null) return;
-
-        sightVisualRoot.localRotation = Quaternion.identity;
-    }
-
     private void UpdateUI()
     {
-        if (stateUI == null) return;
+        if (stateUI == null)
+            return;
 
         string transitions = "";
 
@@ -300,31 +309,21 @@ public class NPCStateMachine : MonoBehaviour
             case NPCState.Idle:
                 transitions =
                     "Player seen -> Move Towards Player\n" +
-                    "Timer ends -> Randomly stay Idle or switch to Patrol\n" +
-                    "Failsafe -> Force switch on 3rd decision";
+                    "Timer ends -> Random Idle/Patrol\n" +
+                    "Failsafe -> Forced switch on 3rd decision";
                 break;
 
             case NPCState.Patrol:
-                if (!patrolArrived)
-                {
-                    transitions =
-                        "Moving to patrol point\n" +
-                        "Player seen -> Move Towards Player\n" +
-                        "Decision happens only after patrol point is reached";
-                }
-                else
-                {
-                    transitions =
-                        "Player seen -> Move Towards Player\n" +
-                        "Timer ends -> Randomly stay Patrol or switch to Idle\n" +
-                        "Failsafe -> Force switch on 3rd decision";
-                }
+                transitions =
+                    "Move between point A and point B\n" +
+                    "Player seen -> Move Towards Player\n" +
+                    "Decision after reaching patrol point";
                 break;
 
             case NPCState.MoveTowardsPlayer:
                 transitions =
                     "Touch player -> Defeat\n" +
-                    "Player touched NPC in Idle/Patrol -> Victory";
+                    "If player touches NPC during Idle/Patrol -> Victory";
                 break;
         }
 
@@ -333,7 +332,8 @@ public class NPCStateMachine : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (gameEnded) return;
+        if (gameEnded)
+            return;
 
         if (!other.CompareTag("Player"))
             return;
@@ -346,22 +346,20 @@ public class NPCStateMachine : MonoBehaviour
         }
 
         if (currentState == NPCState.MoveTowardsPlayer)
-        {
             SceneManager.LoadScene(defeatSceneName);
-        }
         else
-        {
             SceneManager.LoadScene(victorySceneName);
-        }
     }
 
     private void OnDrawGizmosSelected()
     {
+        Vector3 drawDir = Application.isPlaying ? (Vector3)facingDirection : transform.up;
+
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, sightDistance);
 
-        Vector3 leftDir = Quaternion.Euler(0, 0, sightAngle * 0.5f) * (Application.isPlaying ? (Vector3)facingDirection : transform.up);
-        Vector3 rightDir = Quaternion.Euler(0, 0, -sightAngle * 0.5f) * (Application.isPlaying ? (Vector3)facingDirection : transform.up);
+        Vector3 leftDir = Quaternion.Euler(0f, 0f, sightAngle * 0.5f) * drawDir;
+        Vector3 rightDir = Quaternion.Euler(0f, 0f, -sightAngle * 0.5f) * drawDir;
 
         Gizmos.color = Color.red;
         Gizmos.DrawLine(transform.position, transform.position + leftDir * sightDistance);
