@@ -5477,6 +5477,51 @@ Transform:
   - {fileID: 805653092}
   m_Father: {fileID: 1243097194}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+--- !u!1 &812082329
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 812082331}
+  - component: {fileID: 812082330}
+  m_Layer: 0
+  m_Name: AudioBackUp
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &812082330
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 812082329}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 231e4539d759bd5458d191774ed44bfa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AudioBackUp
+  audioManagerPrefab: {fileID: 9178001094864740846, guid: b51cb7ea21fa30249bbcc24fdf513281, type: 3}
+--- !u!4 &812082331
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 812082329}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 6.69218, y: 1.52618, z: -3.36579}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &817561654 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2470780028315981415, guid: 6f59c1996fe1647439ef5e357585fa9e, type: 3}
@@ -13294,7 +13339,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AudioManager
   musicSource: {fileID: 0}
   sfxSource: {fileID: 0}
-  backgroundMusic: {fileID: 0}
+  buttonClickSFX: {fileID: 0}
+  startSceneMusic: {fileID: 0}
+  gameSceneMusic: {fileID: 0}
+  winSceneMusic: {fileID: 0}
+  loseSceneMusic: {fileID: 0}
+  startSceneName: Start
+  gameSceneName: Game
+  winSceneName: Victory
+  loseSceneName: Defeat
 --- !u!4 &1762700657 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6766557550984586008, guid: 185207286880b5e44a7940a40f7f409c, type: 3}
@@ -16490,3 +16543,4 @@ SceneRoots:
   - {fileID: 319267105}
   - {fileID: 1014789494}
   - {fileID: 1090347427}
+  - {fileID: 812082331}

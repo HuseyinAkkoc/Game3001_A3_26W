@@ -7,12 +7,14 @@ public class UIStartScene : MonoBehaviour
     [SerializeField] private GameObject Buttons;
     [SerializeField] private GameObject TitleText;
 
+    [Header("Button Ui SFX")]
+    [SerializeField] private AudioSource musicSource;
 
     public void Play()
     {
         TitleText.SetActive(true);
         SceneManager.LoadScene("Game");
-        instructionPanel.SetActive(false);  
+        instructionPanel.SetActive(false);
     }
 
     public void ShowInstructions()
@@ -49,5 +51,14 @@ public class UIStartScene : MonoBehaviour
     }
 
 
+
+    public void PlayButtonSFX()
+    {
+        if (musicSource != null)
+        {
+            musicSource.Play();
+        }
+
+    }
 
 }
