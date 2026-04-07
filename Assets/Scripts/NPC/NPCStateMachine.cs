@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-[RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(Rigidbody))]
 public class NPCStateMachine : MonoBehaviour
 {
     public enum NPCState
@@ -21,12 +21,12 @@ public class NPCStateMachine : MonoBehaviour
 
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 2f;
-    [SerializeField] private float stoppingDistance = 0.1f;
+    [SerializeField] private float stoppingDistance = 0.2f;
 
     [Header("Vision")]
-    [SerializeField] private float sightDistance = 5f;
+    [SerializeField] private float sightDistance = 6f;
     [SerializeField] private float sightAngle = 60f;
-    [SerializeField] private Vector2 initialFacingDirection = Vector2.up;
+    [SerializeField] private Vector3 initialFacingDirection = Vector3.forward;
 
     [Header("Decision Timing")]
     [SerializeField] private float stateDecisionTime = 3f;
@@ -35,14 +35,14 @@ public class NPCStateMachine : MonoBehaviour
     [SerializeField] private NPCState startingState = NPCState.Idle;
 
     [Header("Scenes")]
-    [SerializeField] private string victorySceneName = "Victory";
-    [SerializeField] private string defeatSceneName = "Defeat";
+    [SerializeField] private string victorySceneName = "VictoryScene";
+    [SerializeField] private string defeatSceneName = "DefeatScene";
 
     [Header("Audio")]
     [SerializeField] private AudioClip stateChangeSFX;
     [SerializeField] private AudioClip collisionSFX;
 
-    private Rigidbody2D rb;
+    private Rigidbody rb;
     private NPCState currentState;
 
     private float timer;
@@ -50,19 +50,20 @@ public class NPCStateMachine : MonoBehaviour
     private bool gameEnded;
 
     private Transform currentPatrolTarget;
-    private Vector2 facingDirection = Vector2.up;
+    private Vector3 facingDirection = Vector3.forward;
 
     public NPCState CurrentState => currentState;
     public float Timer => timer;
 
     private void Awake()
     {
-        rb = GetComponent<Rigidbody2D>();
+        rb = GetComponent<Rigidbody>();
         facingDirection = initialFacingDirection.normalized;
     }
 
     private void Start()
     {
+        transform.position = patrolPointA.position;
         currentPatrolTarget = patrolPointA;
         SetFacingDirection(facingDirection);
         EnterState(startingState);
@@ -97,7 +98,7 @@ public class NPCStateMachine : MonoBehaviour
         }
         else
         {
-            rb.linearVelocity = Vector2.zero;
+            StopMovement();
         }
     }
 
@@ -121,7 +122,7 @@ public class NPCStateMachine : MonoBehaviour
 
     private void HandleIdle()
     {
-        rb.linearVelocity = Vector2.zero;
+        StopMovement();
 
         timer -= Time.deltaTime;
 
@@ -136,12 +137,19 @@ public class NPCStateMachine : MonoBehaviour
         if (currentPatrolTarget == null)
             return;
 
-        float distance = Vector2.Distance(transform.position, currentPatrolTarget.position);
+        Vector3 npcFlatPos = new Vector3(transform.position.x, 0f, transform.position.z);
+        Vector3 targetFlatPos = new Vector3(currentPatrolTarget.position.x, 0f, currentPatrolTarget.position.z);
+
+        float distance = Vector3.Distance(npcFlatPos, targetFlatPos);
 
         if (distance <= stoppingDistance)
         {
-            rb.position = currentPatrolTarget.position;
-            rb.linearVelocity = Vector2.zero;
+            Vector3 fixedPos = transform.position;
+            fixedPos.x = currentPatrolTarget.position.x;
+            fixedPos.z = currentPatrolTarget.position.z;
+            transform.position = fixedPos;
+
+            StopMovement();
 
             timer -= Time.deltaTime;
 
@@ -161,12 +169,21 @@ public class NPCStateMachine : MonoBehaviour
     {
         if (currentPatrolTarget == null)
         {
-            rb.linearVelocity = Vector2.zero;
+            StopMovement();
             return;
         }
 
-        Vector2 direction = ((Vector2)currentPatrolTarget.position - rb.position).normalized;
-        rb.linearVelocity = direction * moveSpeed;
+        Vector3 targetPosition = currentPatrolTarget.position;
+        Vector3 currentPosition = transform.position;
+
+        Vector3 direction = targetPosition - currentPosition;
+        direction.y = 0f;
+
+        direction = direction.normalized;
+
+        Vector3 velocity = direction * moveSpeed;
+        velocity.y = rb.linearVelocity.y;
+        rb.linearVelocity = velocity;
 
         if (direction.sqrMagnitude > 0.001f)
         {
@@ -178,17 +195,27 @@ public class NPCStateMachine : MonoBehaviour
     {
         if (player == null)
         {
-            rb.linearVelocity = Vector2.zero;
+            StopMovement();
             return;
         }
 
-        Vector2 direction = ((Vector2)player.position - rb.position).normalized;
-        rb.linearVelocity = direction * moveSpeed;
+        Vector3 direction = player.position - transform.position;
+        direction.y = 0f;
+        direction = direction.normalized;
+
+        Vector3 velocity = direction * moveSpeed;
+        velocity.y = rb.linearVelocity.y;
+        rb.linearVelocity = velocity;
 
         if (direction.sqrMagnitude > 0.001f)
         {
             SetFacingDirection(direction);
         }
+    }
+
+    private void StopMovement()
+    {
+        rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
     }
 
     private void DecideIdleOrPatrol(NPCState fromState)
@@ -232,7 +259,7 @@ public class NPCStateMachine : MonoBehaviour
         {
             case NPCState.Idle:
                 timer = stateDecisionTime;
-                rb.linearVelocity = Vector2.zero;
+                StopMovement();
                 break;
 
             case NPCState.Patrol:
@@ -261,12 +288,16 @@ public class NPCStateMachine : MonoBehaviour
             currentPatrolTarget = patrolPointA;
     }
 
-    private void SetFacingDirection(Vector2 direction)
+    private void SetFacingDirection(Vector3 direction)
     {
         facingDirection = direction.normalized;
 
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f;
-        transform.rotation = Quaternion.Euler(0f, 0f, angle);
+        Vector3 flatDirection = new Vector3(facingDirection.x, 0f, facingDirection.z);
+
+        if (flatDirection.sqrMagnitude > 0.001f)
+        {
+            transform.forward = flatDirection;
+        }
     }
 
     private bool CanSeePlayer()
@@ -274,27 +305,26 @@ public class NPCStateMachine : MonoBehaviour
         if (player == null)
             return false;
 
-        Vector2 origin = transform.position;
-        Vector2 toPlayer = (Vector2)(player.position - transform.position);
+        Vector3 origin = transform.position + Vector3.up * 0.5f;
+        Vector3 target = player.position + Vector3.up * 0.5f;
 
-        if (toPlayer.magnitude > sightDistance)
+        Vector3 toPlayer = target - origin;
+        float distanceToPlayer = toPlayer.magnitude;
+
+        if (distanceToPlayer > sightDistance)
             return false;
 
-        float angleToPlayer = Vector2.Angle(facingDirection, toPlayer.normalized);
+        float angleToPlayer = Vector3.Angle(facingDirection, toPlayer.normalized);
         if (angleToPlayer > sightAngle * 0.5f)
             return false;
 
-        RaycastHit2D hit = Physics2D.Raycast(
-            origin,
-            toPlayer.normalized,
-            toPlayer.magnitude,
-            obstacleMask | playerMask
-        );
+        RaycastHit hit;
+        if (Physics.Raycast(origin, toPlayer.normalized, out hit, distanceToPlayer, obstacleMask | playerMask))
+        {
+            return hit.collider.CompareTag("Player");
+        }
 
-        if (hit.collider == null)
-            return false;
-
-        return hit.collider.CompareTag("Player");
+        return false;
     }
 
     private void UpdateUI()
@@ -330,7 +360,7 @@ public class NPCStateMachine : MonoBehaviour
         stateUI.UpdateUI(currentState.ToString(), timer, transitions);
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    private void OnTriggerEnter(Collider other)
     {
         if (gameEnded)
             return;
@@ -353,13 +383,13 @@ public class NPCStateMachine : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        Vector3 drawDir = Application.isPlaying ? (Vector3)facingDirection : transform.up;
+        Vector3 drawDir = Application.isPlaying ? facingDirection : transform.forward;
 
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, sightDistance);
 
-        Vector3 leftDir = Quaternion.Euler(0f, 0f, sightAngle * 0.5f) * drawDir;
-        Vector3 rightDir = Quaternion.Euler(0f, 0f, -sightAngle * 0.5f) * drawDir;
+        Vector3 leftDir = Quaternion.Euler(0f, sightAngle * 0.5f, 0f) * drawDir;
+        Vector3 rightDir = Quaternion.Euler(0f, -sightAngle * 0.5f, 0f) * drawDir;
 
         Gizmos.color = Color.red;
         Gizmos.DrawLine(transform.position, transform.position + leftDir * sightDistance);
