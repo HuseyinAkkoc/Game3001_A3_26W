@@ -19,6 +19,8 @@ public class UIStartScene : MonoBehaviour
     {
         if (instructionPanel != null)
         {
+
+            Time.timeScale = 0.0f;
             TitleText.SetActive(false);
             Buttons.SetActive(false);
             instructionPanel.SetActive(true);
@@ -29,15 +31,21 @@ public class UIStartScene : MonoBehaviour
     {
         if (instructionPanel != null)
         {
+            Time.timeScale = 1.0f;
 
             instructionPanel.SetActive(false);
             Buttons.SetActive(true);
             TitleText.SetActive(true);
         }
     }
+
+    public void MainMenu()
+    {
+        SceneManager.LoadScene("Start");
+    }
     public void QuitGame()
     {
-        Application.OpenURL("https://huseyinakkoc.itch.io/game3001-a2-w26");
+        Application.OpenURL("https://huseyinakkoc.itch.io/");
     }
 
 
