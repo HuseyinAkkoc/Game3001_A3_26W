@@ -3,6 +3,8 @@ using UnityEngine.SceneManagement;
 
 public class SimpleNPCChase : MonoBehaviour
 {
+    public NPCStateUI npcStateUI;
+
     [Header("References")]
     [SerializeField] private Transform player;
     [SerializeField] private Transform pointA;
@@ -19,7 +21,7 @@ public class SimpleNPCChase : MonoBehaviour
     [SerializeField] private float catchRange = 1.2f;
 
     [Header("Scene")]
-    [SerializeField] private string loseSceneName = "DefeatScene";
+    [SerializeField] private string loseSceneName = "Defeat";
 
     private Transform currentTarget;
     private float waitTimer = 0f;
@@ -73,6 +75,7 @@ public class SimpleNPCChase : MonoBehaviour
 
     private void Patrol()
     {
+      //  npcStateUI.UpdateStateUI("Patrolling");
         Vector3 targetPos = new Vector3(currentTarget.position.x, transform.position.y, currentTarget.position.z);
         Vector3 direction = (targetPos - transform.position).normalized;
 

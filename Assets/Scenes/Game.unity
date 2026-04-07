@@ -8122,8 +8122,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1134131887}
-  - component: {fileID: 1134131886}
-  - component: {fileID: 1134131885}
   - component: {fileID: 1134131889}
   - component: {fileID: 1134131888}
   - component: {fileID: 1134131890}
@@ -8134,51 +8132,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1134131885
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1134131883}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cc132f2a897d94e4f89211e625c4309b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NPCStateMachine
-  player: {fileID: 1364388359}
-  patrolPointA: {fileID: 1986391775}
-  patrolPointB: {fileID: 850357762}
-  obstacleMask:
-    serializedVersion: 2
-    m_Bits: 64
-  playerMask:
-    serializedVersion: 2
-    m_Bits: 128
-  stateUI: {fileID: 1526974964}
-  moveSpeed: 5
-  stoppingDistance: 0.08
-  sightDistance: 3.11
-  sightAngle: 39
-  initialFacingDirection: {x: 0, y: 1, z: 1}
-  stateDecisionTime: 3
-  startingState: 0
-  victorySceneName: Victory
-  defeatSceneName: DefeatS
-  stateChangeSFX: {fileID: 8300000, guid: 50a1e38c5957e7f4eb308fdd127ed501, type: 3}
-  collisionSFX: {fileID: 8300000, guid: a00c76f38fe2af045bee666d7fadb4eb, type: 3}
---- !u!114 &1134131886
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1134131883}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 354918181cbae61459f627b32c0dc980, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NPCVision
 --- !u!4 &1134131887
 Transform:
   m_ObjectHideFlags: 0
@@ -8256,6 +8209,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1c486eb34fc679498aeaf938d9ea2d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SimpleNPCChase
+  npcStateUI: {fileID: 1526974964}
   player: {fileID: 1364388359}
   pointA: {fileID: 1986391775}
   pointB: {fileID: 850357762}
@@ -10763,8 +10717,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1396776928}
-  - component: {fileID: 1396776927}
-  - component: {fileID: 1396776926}
   - component: {fileID: 1396776925}
   - component: {fileID: 1396776924}
   - component: {fileID: 1396776923}
@@ -10787,6 +10739,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1c486eb34fc679498aeaf938d9ea2d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SimpleNPCChase
+  npcStateUI: {fileID: 1526974964}
   player: {fileID: 1364388359}
   pointA: {fileID: 928664130}
   pointB: {fileID: 257500786}
@@ -10845,51 +10798,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 80
   m_CollisionDetection: 0
---- !u!114 &1396776926
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1396776922}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cc132f2a897d94e4f89211e625c4309b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NPCStateMachine
-  player: {fileID: 1364388359}
-  patrolPointA: {fileID: 1986391775}
-  patrolPointB: {fileID: 850357762}
-  obstacleMask:
-    serializedVersion: 2
-    m_Bits: 64
-  playerMask:
-    serializedVersion: 2
-    m_Bits: 128
-  stateUI: {fileID: 1526974964}
-  moveSpeed: 5
-  stoppingDistance: 0.08
-  sightDistance: 3.11
-  sightAngle: 39
-  initialFacingDirection: {x: 0, y: 1, z: 1}
-  stateDecisionTime: 3
-  startingState: 0
-  victorySceneName: Victory
-  defeatSceneName: DefeatS
-  stateChangeSFX: {fileID: 8300000, guid: 50a1e38c5957e7f4eb308fdd127ed501, type: 3}
-  collisionSFX: {fileID: 8300000, guid: a00c76f38fe2af045bee666d7fadb4eb, type: 3}
---- !u!114 &1396776927
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1396776922}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 354918181cbae61459f627b32c0dc980, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NPCVision
 --- !u!4 &1396776928
 Transform:
   m_ObjectHideFlags: 0

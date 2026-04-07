@@ -357,7 +357,7 @@ public class NPCStateMachine : MonoBehaviour
                 break;
         }
 
-        stateUI.UpdateUI(currentState.ToString(), timer, transitions);
+        //stateUI.UpdateStateUI(currentState.ToString(), timer, transitions);
     }
 
     private void OnTriggerEnter(Collider other)
